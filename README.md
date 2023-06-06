@@ -26,7 +26,7 @@ to pq. Tested the SQL results in DuckDB to confirm results.
 
 **To Do**
 
-Add DuckDB query results in appropriately formatted way.
+Finish adding DuckDB query results in appropriately formatted way.
 
 **Queries:**
 
@@ -41,6 +41,59 @@ filter country != 'USA'
 select [name = f"{first_name} {last_name}", country, customer_id]
 ```
 
+DuckDB results:
+```
+┌───────────────────────┬────────────────┬─────────────┐
+│         name          │    country     │ customer_id │
+│        varchar        │    varchar     │    int32    │
+├───────────────────────┼────────────────┼─────────────┤
+│ Luís Gonçalves        │ Brazil         │           1 │
+│ Leonie Köhler         │ Germany        │           2 │
+│ François Tremblay     │ Canada         │           3 │
+│ Bjorn Hansen          │ Norway         │           4 │
+│ Frantisek Wichterlová │ Czech Republic │           5 │
+│ Helena Holy           │ Czech Republic │           6 │
+│ Astrid Gruber         │ Austria        │           7 │
+│ Daan Peeters          │ Belgium        │           8 │
+│ Kara Nielsen          │ Denmark        │           9 │
+│ Eduardo Martins       │ Brazil         │          10 │
+│ Alexandre Rocha       │ Brazil         │          11 │
+│ Roberto Almeida       │ Brazil         │          12 │
+│ Fernanda Ramos        │ Brazil         │          13 │
+│ Mark Philips          │ Canada         │          14 │
+│ Jennifer Peterson     │ Canada         │          15 │
+│ Robert Brown          │ Canada         │          29 │
+│ Edward Francis        │ Canada         │          30 │
+│ Martha Silk           │ Canada         │          31 │
+│ Aaron Mitchell        │ Canada         │          32 │
+│ Ellie Sullivan        │ Canada         │          33 │
+│       ·               │   ·            │           · │
+│       ·               │   ·            │           · │
+│       ·               │   ·            │           · │
+│ Dominique Lefebvre    │ France         │          40 │
+│ Marc Dubois           │ France         │          41 │
+│ Wyatt Girard          │ France         │          42 │
+│ Isabelle Mercier      │ France         │          43 │
+│ Terhi Hämäläinen      │ Finland        │          44 │
+│ Ladislav Kovács       │ Hungary        │          45 │
+│ Hugh O'Reilly         │ Ireland        │          46 │
+│ Lucas Mancini         │ Italy          │          47 │
+│ Johannes Van der Berg │ Netherlands    │          48 │
+│ Stanislaw Wójcik      │ Poland         │          49 │
+│ Enrique Muñoz         │ Spain          │          50 │
+│ Joakim Johansson      │ Sweden         │          51 │
+│ Emma Jones            │ United Kingdom │          52 │
+│ Phil Hughes           │ United Kingdom │          53 │
+│ Steve Murray          │ United Kingdom │          54 │
+│ Mark Taylor           │ Australia      │          55 │
+│ Diego Gutiérrez       │ Argentina      │          56 │
+│ Luis Rojas            │ Chile          │          57 │
+│ Manoj Pareek          │ India          │          58 │
+│ Puja Srivastava       │ India          │          59 │
+├───────────────────────┴────────────────┴─────────────┤
+│ 46 rows (40 shown)                         3 columns │
+└──────────────────────────────────────────────────────┘
+```
 PRQL-Query:
 pq --no-exec "from customers | filter country != 'USA' | select [first_name, last_name, country, customer_id]"
 
