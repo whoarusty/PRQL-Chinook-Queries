@@ -24,9 +24,6 @@ Providing PRQL-Query and resulting SQL queries using the –no-exec option
 since DuckDB already had the database open. Also used PRQL pipes to pass
 to pq. Tested the SQL results in DuckDB to confirm results.
 
-**To Do**
-
-Finish adding DuckDB query results in appropriately formatted way.
 
 **Queries:**
 
@@ -121,6 +118,21 @@ filter country == 'Brazil'
 select [customer_id, name = f"{first_name} {last_name}", country]
 ```
 
+DuckDB results:
+
+```
+┌─────────────┬─────────────────┬─────────┐
+│ customer_id │      name       │ country │
+│    int32    │     varchar     │ varchar │
+├─────────────┼─────────────────┼─────────┤
+│           1 │ Luís Gonçalves  │ Brazil  │
+│          10 │ Eduardo Martins │ Brazil  │
+│          11 │ Alexandre Rocha │ Brazil  │
+│          12 │ Roberto Almeida │ Brazil  │
+│          13 │ Fernanda Ramos  │ Brazil  │
+└─────────────┴─────────────────┴─────────┘
+```
+
 PRQL-Query:
 pq --no-exec "from customers | filter country == 'Brazil' | select [customer_id, first_name, last_name, country]"
 
@@ -152,6 +164,20 @@ join i=invoices [c.customer_id == i.customer_id]
 filter c.country == 'Brazil'
 select [c.customer_id, Name = f"{c.first_name} {c.last_name}", i.invoice_id, i.invoice_date, i.billing_country]
 take 5
+```
+
+DuckDB results:
+```
+┌─────────────┬─────────────────┬────────────┬──────────────┬─────────────────┐
+│ customer_id │      Name       │ invoice_id │ invoice_date │ billing_country │
+│    int32    │     varchar     │   int32    │     date     │     varchar     │
+├─────────────┼─────────────────┼────────────┼──────────────┼─────────────────┤
+│          10 │ Eduardo Martins │         25 │ 2009-04-09   │ Brazil          │
+│          12 │ Roberto Almeida │         34 │ 2009-05-23   │ Brazil          │
+│          13 │ Fernanda Ramos  │         35 │ 2009-06-05   │ Brazil          │
+│          11 │ Alexandre Rocha │         57 │ 2009-09-06   │ Brazil          │
+│          13 │ Fernanda Ramos  │         58 │ 2009-09-07   │ Brazil          │
+└─────────────┴─────────────────┴────────────┴──────────────┴─────────────────┘
 ```
 
 PRQL-Query:
@@ -189,6 +215,18 @@ select [employee_id, title]
 
 Note: like work around is difficult to currently support two words – had to change from ‘Sales Agent’ to just ‘Agent’
 
+DuckDB results:
+```
+┌─────────────┬─────────────────────┐
+│ employee_id │        title        │
+│    int32    │       varchar       │
+├─────────────┼─────────────────────┤
+│           3 │ Sales Support Agent │
+│           4 │ Sales Support Agent │
+│           5 │ Sales Support Agent │
+└─────────────┴─────────────────────┘
+```
+
 PRQL-Query:
 pq --no-exec "func like fld str -> s"{fld} like '%' || {str} || '%' " # from: https://github.com/PRQL/prql/issues/1123 | from employees | filter (like title 'Agent') | select [employee_id, title]"
 
@@ -202,6 +240,41 @@ PRQL:
 from invoices
 select billing_country
 group billing_country (take 1)
+```
+
+DuckDB results:
+```
+┌─────────────────┐
+│ billing_country │
+│     varchar     │
+├─────────────────┤
+│ Germany         │
+│ Norway          │
+│ Belgium         │
+│ Canada          │
+│ USA             │
+│ France          │
+│ Ireland         │
+│ United Kingdom  │
+│ Australia       │
+│ Chile           │
+│ India           │
+│ Brazil          │
+│ Portugal        │
+│ Netherlands     │
+│ Spain           │
+│ Sweden          │
+│ Czech Republic  │
+│ Finland         │
+│ Denmark         │
+│ Italy           │
+│ Poland          │
+│ Austria         │
+│ Hungary         │
+│ Argentina       │
+├─────────────────┤
+│     24 rows     │
+└─────────────────┘
 ```
 
 PRQL-Query:
@@ -227,6 +300,60 @@ from c=customers
 join side:left i=invoices [i.customer_id == c.customer_id]
 join side:left e=employees [e.employee_id == c.support_rep_id]
 select [i.invoice_id, employee_name = f"{e.first_name} {e.last_name}"]
+```
+
+DuckDB results:
+```
+┌────────────┬───────────────┐
+│ invoice_id │ employee_name │
+│   int32    │    varchar    │
+├────────────┼───────────────┤
+│          1 │ Steve Johnson │
+│          2 │ Margaret Park │
+│          3 │ Margaret Park │
+│          4 │ Steve Johnson │
+│          5 │ Margaret Park │
+│          6 │ Jane Peacock  │
+│          7 │ Jane Peacock  │
+│          8 │ Margaret Park │
+│          9 │ Jane Peacock  │
+│         10 │ Jane Peacock  │
+│         11 │ Jane Peacock  │
+│         12 │ Steve Johnson │
+│         13 │ Margaret Park │
+│         14 │ Steve Johnson │
+│         15 │ Jane Peacock  │
+│         16 │ Steve Johnson │
+│         17 │ Steve Johnson │
+│         18 │ Steve Johnson │
+│         19 │ Margaret Park │
+│         20 │ Steve Johnson │
+│          · │       ·       │
+│          · │       ·       │
+│          · │       ·       │
+│        406 │ Steve Johnson │
+│        407 │ Margaret Park │
+│        408 │ Steve Johnson │
+│        409 │ Jane Peacock  │
+│        410 │ Margaret Park │
+│        412 │ Jane Peacock  │
+│         41 │ Steve Johnson │
+│         53 │ Jane Peacock  │
+│        162 │ Steve Johnson │
+│        173 │ Steve Johnson │
+│        182 │ Jane Peacock  │
+│        205 │ Jane Peacock  │
+│        227 │ Jane Peacock  │
+│        228 │ Steve Johnson │
+│        279 │ Jane Peacock  │
+│        357 │ Steve Johnson │
+│        380 │ Steve Johnson │
+│        400 │ Jane Peacock  │
+│        402 │ Steve Johnson │
+│        411 │ Jane Peacock  │
+├────────────┴───────────────┤
+│    412 rows (40 shown)     │
+└────────────────────────────┘
 ```
 
 PRQL-Query:
@@ -255,6 +382,60 @@ from c=customers
 join side:left i=invoices [i.customer_id == c.customer_id]
 join side:left e=employees [e.employee_id == c.support_rep_id]
 select [Customer_Name = f"{c.first_name} {c.last_name}", Employee_Name = f"{e.first_name} {e.last_name}", i.total, c.country, e.title]
+```
+
+DuckDB results:
+```
+┌────────────────────┬───────────────┬───────────────┬────────────────┬─────────────────────┐
+│   Customer_Name    │ Employee_Name │     total     │    country     │        title        │
+│      varchar       │    varchar    │ decimal(10,2) │    varchar     │       varchar       │
+├────────────────────┼───────────────┼───────────────┼────────────────┼─────────────────────┤
+│ Leonie Köhler      │ Steve Johnson │          1.98 │ Germany        │ Sales Support Agent │
+│ Bjorn Hansen       │ Margaret Park │          3.96 │ Norway         │ Sales Support Agent │
+│ Daan Peeters       │ Margaret Park │          5.94 │ Belgium        │ Sales Support Agent │
+│ Mark Philips       │ Steve Johnson │          8.91 │ Canada         │ Sales Support Agent │
+│ John Gordon        │ Margaret Park │         13.86 │ USA            │ Sales Support Agent │
+│ Fynn Zimmermann    │ Jane Peacock  │          0.99 │ Germany        │ Sales Support Agent │
+│ Niklas Schröder    │ Jane Peacock  │          1.98 │ Germany        │ Sales Support Agent │
+│ Dominique Lefebvre │ Margaret Park │          1.98 │ France         │ Sales Support Agent │
+│ Wyatt Girard       │ Jane Peacock  │          3.96 │ France         │ Sales Support Agent │
+│ Hugh O'Reilly      │ Jane Peacock  │          5.94 │ Ireland        │ Sales Support Agent │
+│ Emma Jones         │ Jane Peacock  │          8.91 │ United Kingdom │ Sales Support Agent │
+│ Leonie Köhler      │ Steve Johnson │         13.86 │ Germany        │ Sales Support Agent │
+│ Frank Harris       │ Margaret Park │          0.99 │ USA            │ Sales Support Agent │
+│ Jack Smith         │ Steve Johnson │          1.98 │ USA            │ Sales Support Agent │
+│ Tim Goyer          │ Jane Peacock  │          1.98 │ USA            │ Sales Support Agent │
+│ Kathy Chase        │ Steve Johnson │          3.96 │ USA            │ Sales Support Agent │
+│ Victor Stevens     │ Steve Johnson │          5.94 │ USA            │ Sales Support Agent │
+│ Martha Silk        │ Steve Johnson │          8.91 │ Canada         │ Sales Support Agent │
+│ Dominique Lefebvre │ Margaret Park │         13.86 │ France         │ Sales Support Agent │
+│ Steve Murray       │ Steve Johnson │          0.99 │ United Kingdom │ Sales Support Agent │
+│      ·             │       ·       │            ·  │  ·             │          ·          │
+│      ·             │       ·       │            ·  │  ·             │          ·          │
+│      ·             │       ·       │            ·  │  ·             │          ·          │
+│ Kathy Chase        │ Steve Johnson │          1.98 │ USA            │ Sales Support Agent │
+│ John Gordon        │ Margaret Park │          1.98 │ USA            │ Sales Support Agent │
+│ Victor Stevens     │ Steve Johnson │          3.96 │ USA            │ Sales Support Agent │
+│ Robert Brown       │ Jane Peacock  │          5.94 │ Canada         │ Sales Support Agent │
+│ Madalena Sampaio   │ Margaret Park │          8.91 │ Portugal       │ Sales Support Agent │
+│ Manoj Pareek       │ Jane Peacock  │          1.99 │ India          │ Sales Support Agent │
+│ Enrique Muñoz      │ Steve Johnson │          0.99 │ Spain          │ Sales Support Agent │
+│ Terhi Hämäläinen   │ Jane Peacock  │          8.91 │ Finland        │ Sales Support Agent │
+│ Enrique Muñoz      │ Steve Johnson │          1.98 │ Spain          │ Sales Support Agent │
+│ Enrique Muñoz      │ Steve Johnson │         13.86 │ Spain          │ Sales Support Agent │
+│ Terhi Hämäläinen   │ Jane Peacock  │          1.98 │ Finland        │ Sales Support Agent │
+│ Terhi Hämäläinen   │ Jane Peacock  │          7.96 │ Finland        │ Sales Support Agent │
+│ Terhi Hämäläinen   │ Jane Peacock  │          5.94 │ Finland        │ Sales Support Agent │
+│ Enrique Muñoz      │ Steve Johnson │          8.91 │ Spain          │ Sales Support Agent │
+│ Terhi Hämäläinen   │ Jane Peacock  │          0.99 │ Finland        │ Sales Support Agent │
+│ Enrique Muñoz      │ Steve Johnson │          1.98 │ Spain          │ Sales Support Agent │
+│ Enrique Muñoz      │ Steve Johnson │          3.96 │ Spain          │ Sales Support Agent │
+│ Terhi Hämäläinen   │ Jane Peacock  │          1.98 │ Finland        │ Sales Support Agent │
+│ Enrique Muñoz      │ Steve Johnson │          5.94 │ Spain          │ Sales Support Agent │
+│ Terhi Hämäläinen   │ Jane Peacock  │         13.86 │ Finland        │ Sales Support Agent │
+├────────────────────┴───────────────┴───────────────┴────────────────┴─────────────────────┤
+│ 412 rows (40 shown)                                                             5 columns │
+└───────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 PRQL-Query:
@@ -293,6 +474,17 @@ aggregate [count]
 filter (year == 2009 || year == 2011)
 ```
 
+DuckDB results:
+```
+┌───────┬──────────────┐
+│ year  │ count_star() │
+│ int64 │    int64     │
+├───────┼──────────────┤
+│  2009 │           83 │
+│  2011 │           83 │
+└───────┴──────────────┘
+```
+
 PRQL-Query:
 pq --no-exec "from invoices | derive year = s"date_part('year', invoice_date)" | group year (aggregate [count])"
 
@@ -308,6 +500,16 @@ PRQL:
 from invoice_items
 filter invoice_id == 37
 aggregate [line_items_ID_37 = count]
+```
+
+DuckDB results:
+```
+┌──────────────────┐
+│ line_items_ID_37 │
+│      int64       │
+├──────────────────┤
+│                4 │
+└──────────────────┘
 ```
 
 PRQL-Query:
@@ -334,6 +536,61 @@ from invoices
 group invoice_id(
 aggregate[ct=count]
 )
+```
+
+DuckDB results:
+```
+┌────────────┬───────┐
+│ invoice_id │  ct   │
+│   int32    │ int64 │
+├────────────┼───────┤
+│          1 │     1 │
+│          2 │     1 │
+│          3 │     1 │
+│          4 │     1 │
+│          5 │     1 │
+│          6 │     1 │
+│          7 │     1 │
+│          8 │     1 │
+│          9 │     1 │
+│         10 │     1 │
+│         11 │     1 │
+│         12 │     1 │
+│         13 │     1 │
+│         14 │     1 │
+│         15 │     1 │
+│         16 │     1 │
+│         17 │     1 │
+│         18 │     1 │
+│         19 │     1 │
+│         20 │     1 │
+│          · │     · │
+│          · │     · │
+│          · │     · │
+│        393 │     1 │
+│        394 │     1 │
+│        395 │     1 │
+│        396 │     1 │
+│        397 │     1 │
+│        398 │     1 │
+│        399 │     1 │
+│        400 │     1 │
+│        401 │     1 │
+│        402 │     1 │
+│        403 │     1 │
+│        404 │     1 │
+│        405 │     1 │
+│        406 │     1 │
+│        407 │     1 │
+│        408 │     1 │
+│        409 │     1 │
+│        410 │     1 │
+│        411 │     1 │
+│        412 │     1 │
+├────────────┴───────┤
+│      412 rows      │
+│     (40 shown)     │
+└────────────────────┘
 ```
 
 PRQL-Query:
